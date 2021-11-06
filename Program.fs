@@ -3,7 +3,7 @@ open System
 open System.Diagnostics
 
 module Main =
-    open System.Data
+    open Domain
 
     let private exec (file : string) (args : string list) =
         let pathlist = Environment.GetEnvironmentVariable("PATH").Split ([|':'|]) |> Array.toList
@@ -48,9 +48,11 @@ module Main =
 
 
     let eval (line : string list) =
-        match line with
-        | [] -> 0, ""
-        | head::rest -> exec head rest
+        let command = Parser.parse line
+        match command with
+        | Command (path, None) -> exec path []
+        | Command (path, Some args) -> exec path args
+        | Nothing -> (0, "")
 
     let rec repl () =
         let args = read ()
