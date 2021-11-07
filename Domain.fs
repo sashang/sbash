@@ -1,6 +1,3 @@
-open System
-open Microsoft.VisualBasic
-open System.Collections.Specialized
 namespace SBash
 
 module Domain =

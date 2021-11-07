@@ -1,4 +1,6 @@
 #r "nuget:FParsec"
+#load "Domain.fs"
+#load "Parser.fs"
 (*
     for infomration about these parser primitives read the reference here: http://www.quanttec.com/fparsec/reference/parser-overview.html
     It explains things like manyChars, noneOf, anyOf etc....
