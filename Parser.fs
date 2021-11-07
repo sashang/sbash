@@ -8,13 +8,22 @@ module Parser =
     let noneControl : CharStream<unit> -> Reply<char> = noneOf ";\n"
 
     // Parse a parameter e.g. var=1
-    let parameter : Parser<string * string, unit> = regex "[^=\d][^=]+" .>> skipChar '=' .>>. regex ".+" 
+    let parameter  =
+        regex "[^=\d][^=]+" .>> skipChar '=' .>>. regex ".+"
+        |>> fun (a, b) -> Parameter (Name a, Value b)
 
     // command argument parser. commands are terminated with a bash control char, so we parse
     // everything that isn't a control char. Parse stops when it sees a control char.
-    let commandArgs = spaces >>. manyChars noneControl 
+    let commandArgs = manyChars noneControl 
 
     // parse a command and its args
-    let command = regex "\w+" .>> spaces .>>. commandArgs
+    let command =
+        regex "\w+" .>> spaces .>>. commandArgs
+        |>> fun (a, b) -> Command (Path a, Arguments b)
 
-    let parse = opt parameter .>>. command
+    let statement = choice [
+        attempt parameter
+        attempt command
+    ]
+
+    let parse (input : string) = run statement input

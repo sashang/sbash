@@ -2,12 +2,12 @@ namespace SBash
 
 module Domain =
 
-    type Path = string
-    type Arguments = string list
+    type Path = Path of string
+    type Arguments = Arguments of string
 
-    type Name = string
+    type Name = Name of string
     type LiteralEqual = char
-    type Value = string
+    type Value = Value of string
 
     type ControlOperator =
         | Newline of char
