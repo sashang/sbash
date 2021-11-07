@@ -8,7 +8,6 @@
 *)
 
 open FParsec
-open System
 let str s = pstring s
 
 let test p str =
@@ -16,8 +15,9 @@ let test p str =
     | Success(result, _, _)   -> printfn "Success: %A" result
     | Failure(errorMsg, _, _) -> printfn "Failure: %s" errorMsg
 
-let parameter = regex "[^=]+" .>> skipChar '=' .>>. regex ".+" 
+let parameter = regex "[^=\d]+" .>> skipChar '=' .>>. regex ".+" 
 
+test parameter "1var=pop" //parameters can't start with a digit - this should fail
 test parameter "adsad=pop"
 test parameter "adsad==pop" //bash values can contain =
 

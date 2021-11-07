@@ -4,37 +4,17 @@ module Parser =
     open Domain
     open FParsec
 
-(*
-    let parseParameter (state : Program) (tokens : string list) =
-        let splitResult = token.Split('=')
-        let (Program (statements)) = state
-        List.append statements [Parameter(splitResult.[0], splitResult.[1])]
-        |> Program
+    let control : CharStream<unit> -> Reply<char> = anyOf ";\n"
+    let noneControl : CharStream<unit> -> Reply<char> = noneOf ";\n"
 
-    let parseCommand (state : Program) (tokens : string list) =
-        let (Program (statements)) = state
-        List.append statements [Command(command, args)]
-        |> Program
+    // Parse a parameter e.g. var=1
+    let parameter : Parser<string * string, unit> = regex "[^=\d][^=]+" .>> skipChar '=' .>>. regex ".+" 
 
-    let parse (state : Program) (tokens : string list) =
-        match tokens with
-        | [] -> 
-            let (Program (statements)) = state
-            List.append statements [Nothing]
-            |> Program
-        | head::rest -> 
-            if head.Contains('=') then
-                parseParameter state head
-            else
-                parseCommand state head rest
- *)
-    let str s = pstring s
-    
-    let test p str =
-        match run p str with
-        | Success(result, _, _)   -> printfn "Success: %A" result
-        | Failure(errorMsg, _, _) -> printfn "Failure: %s" errorMsg
+    // command argument parser. commands are terminated with a bash control char, so we parse
+    // everything that isn't a control char. Parse stops when it sees a control char.
+    let commandArgs = spaces >>. manyChars noneControl 
 
-    let parseParameter = regex "[a-z][A-Z]+" .>> skipChar '=' .>>. regex "[a-z][A-Z]+" 
+    // parse a command and its args
+    let command = regex "\w+" .>> spaces .>>. commandArgs
 
-    test parseParameter "adsad"
+    let parse = opt parameter .>>. command
