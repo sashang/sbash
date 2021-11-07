@@ -16,6 +16,6 @@ module Domain =
     type Statement =
         | Nothing
         | Parameter of Name * Value
-        | Command of Path * Arguments
+        | Command of Path * Arguments option
 
     type Program = Program of Statement list

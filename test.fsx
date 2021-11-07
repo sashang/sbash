@@ -35,7 +35,10 @@ test Parser.commandArgs "--list"
 // which means escape sequences are ignored, except where double quotes are used to escape
 // single quotes.
 test Parser.command @"find . -iname ""something"";"
+test Parser.command @"ls;"
 test Parser.command @"echo ""hello"";"
 
 test Parser.command @"echo ""hello""; echo ""now"";"
+
+test Parser.statement @"var=1;ls -l;"
 
