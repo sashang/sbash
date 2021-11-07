@@ -4,14 +4,18 @@ open System.Diagnostics
 
 module Main =
     open Domain
+    open FParsec.CharParsers
 
-    let private exec (file : string) (args : string list) =
+    let private evalCommand (path : Path) (args : Arguments) =
+        let (Path path) = path
+        let (Arguments args) = args
+
         let pathlist = Environment.GetEnvironmentVariable("PATH").Split ([|':'|]) |> Array.toList
         try
-            let where = List.find (fun x -> IO.File.Exists(x + "/" + file)) pathlist
+            let where = List.find (fun x -> IO.File.Exists(x + "/" + path)) pathlist
             let startInfo = ProcessStartInfo()
-            startInfo.FileName  <- where + "/" + file
-            startInfo.Arguments <- match args with | [] -> "" | _ -> List.reduce (+) args
+            startInfo.FileName  <- where + "/" + path
+            startInfo.Arguments <- args
 
             startInfo.RedirectStandardOutput <- false
             startInfo.RedirectStandardInput  <- false
@@ -26,33 +30,26 @@ module Main =
             proc.WaitForExit()
             (proc.ExitCode, "")
         with
-            | :? Collections.Generic.KeyNotFoundException -> (1, file + ": command not found")
+            | :? Collections.Generic.KeyNotFoundException -> (1, path + ": command not found")
+    
+    let private evalParameter (name : Name) (value : Value) =
+        let (Name name) = name
+        let (Value value) = value
+        (0, "")
 
     let read () =
-        let isWhitespace c =
-            System.Char.IsWhiteSpace c
+        Console.ReadLine ()
 
-        let folder (acc, current) item = 
-            // if it's not whitespace then append the char to the current string being built
-            if not (isWhitespace item) then
-                (acc, current + string item)
-            else
-            // if it is whitespace the append the current word onto the accumulator (list of strings)
-            // and reset the current to the empty string
-                (acc @ [current], "")
-
-        let line = Console.ReadLine ()
-        line
-        |> Seq.fold folder ([], "")
-        |> (fun (args, last) -> args @ [last])
-
-
-    let eval (line : string list) =
-        let command = Parser.parse line
-        match command with
-        | Command (path, None) -> exec path []
-        | Command (path, Some args) -> exec path args
-        | Nothing -> (0, "")
+    let eval (input : string) =
+        let parseResult = Parser.parse input
+        match parseResult with
+        | ParserResult.Success (statement, _, _) -> 
+            match statement with
+            | Parameter (name, value) -> evalParameter name value
+            | Command (path, args) -> evalCommand path args
+            | Nothing -> (0, "")
+        | ParserResult.Failure (error, _, _) ->
+            (0, error)
 
     let rec repl () =
         let args = read ()
