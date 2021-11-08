@@ -13,9 +13,10 @@ module Domain =
         | Newline of char
         | Semicolon of char
 
+    type Parameter = Parameter of Name * Value
+    type Command = Command of Path * Arguments
+
     type Statement =
-        | Nothing
-        | Parameter of Name * Value
-        | Command of Path * Arguments option
+        | Statement of Parameter list * Command
 
     type Program = Program of Statement list

@@ -6,7 +6,8 @@ module Main =
     open Domain
     open FParsec.CharParsers
 
-    let private evalCommand (path : Path) (args : Arguments) =
+    let private evalCommand (command : Command) =
+        let (Command (path, args)) = command
         let (Path path) = path
         let (Arguments args) = args
 
@@ -32,9 +33,11 @@ module Main =
         with
             | :? Collections.Generic.KeyNotFoundException -> (1, path + ": command not found")
     
-    let private evalParameter (name : Name) (value : Value) =
+    let private evalParameter (parameter : Parameter) =
+        let (Parameter (name, value)) = parameter
         let (Name name) = name
         let (Value value) = value
+        // return true for the moment
         (0, "")
 
     let read () =
@@ -44,10 +47,9 @@ module Main =
         let parseResult = Parser.parse input
         match parseResult with
         | ParserResult.Success (statement, _, _) -> 
-            match statement with
-            | Parameter (name, value) -> evalParameter name value
-            | Command (path, args) -> evalCommand path args
-            | Nothing -> (0, "")
+            let (Statement (parameters, command)) = statement
+            let eval = List.map evalParameter parameters
+            evalCommand command
         | ParserResult.Failure (error, _, _) ->
             (0, error)
 

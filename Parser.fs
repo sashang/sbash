@@ -18,13 +18,11 @@ module Parser =
 
     // parse a command and its args
     let command =
-        regex "\w+" .>> spaces .>>. opt commandArgs .>> control
-        |>> fun (a, b) ->
-            match b with
-            | None ->
-                Command (Path a, None)
-            | Some args ->
-                Command (Path a, Some (Arguments args))
+        regex "\w+" .>> spaces .>>. commandArgs .>> control
+        |>> fun (a, b) -> Command (Path a, Arguments b)
 
-    let statement = opt parameter .>> command
+    let statement =
+        many parameter .>>. command 
+        |>> Statement
+
     let parse (input : string) = run statement input
