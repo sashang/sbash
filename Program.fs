@@ -48,7 +48,7 @@ module Main =
         match parseResult with
         | ParserResult.Success (statement, _, _) -> 
             let (Statement (parameters, command)) = statement
-            let eval = List.map evalParameter parameters
+            let eval = evalParameter parameters
             evalCommand command
         | ParserResult.Failure (error, _, _) ->
             (0, error)

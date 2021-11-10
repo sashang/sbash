@@ -9,7 +9,7 @@ module Parser =
 
     // Parse a parameter e.g. var=1
     let parameter  =
-        regex "[^=\d][^=]+" .>> skipChar '=' .>>. regex ".+"
+        regex "[^=\d][^=]+" .>> skipChar '=' .>>. regex "[^ \n;]+" .>> spaces
         |>> fun (a, b) -> Parameter (Name a, Value b)
 
     // command argument parser. commands are terminated with a bash control char, so we parse
@@ -18,11 +18,12 @@ module Parser =
 
     // parse a command and its args
     let command =
-        regex "\w+" .>> spaces .>>. commandArgs .>> control
+        regex "\w+" .>> spaces .>>. commandArgs .>> control .>> spaces
         |>> fun (a, b) -> Command (Path a, Arguments b)
 
-    let statement =
-        many parameter .>>. command 
-        |>> Statement
+    //let statement = parameter .>> control .>>. command |>> Statement
+    let paramStatement = parameter .>> control |>> ParamStatement
+    let commandStatement = command |>> CommandStatement
+    let statement = attempt paramStatement <|> commandStatement
 
     let parse (input : string) = run statement input

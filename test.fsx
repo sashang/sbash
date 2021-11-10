@@ -40,5 +40,5 @@ test Parser.command @"echo ""hello"";"
 
 test Parser.command @"echo ""hello""; echo ""now"";"
 
-test Parser.statement @"var=1;ls -l;"
-
+test Parser.statement @"var=1;"
+test Parser.statement @"ls -l;"

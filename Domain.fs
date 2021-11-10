@@ -17,6 +17,7 @@ module Domain =
     type Command = Command of Path * Arguments
 
     type Statement =
-        | Statement of Parameter list * Command
+        | ParamStatement of Parameter
+        | CommandStatement of Command
 
     type Program = Program of Statement list
