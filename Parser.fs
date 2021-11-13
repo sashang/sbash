@@ -17,11 +17,11 @@ module Parser =
 
     // command argument parser. commands are terminated with a bash control char, so we parse
     // everything that isn't a control char. Parse stops when it sees a control char.
-    let commandArgs = manyChars noneControl |>> CommandArgs
+    let commandArgs = manyCharsTill noneControl control |>> CommandArgs
 
     // parse a command and its args
     let command =
-        regex "\w+" .>> spaces .>>. commandArgs .>> control .>> spaces
+        regex "\w+" .>> spaces .>>. commandArgs .>> spaces
         |>> fun (a, b) -> Command (Path a, b)
 
 

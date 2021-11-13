@@ -21,7 +21,7 @@ let testDeclare() =
         | [SingleArg arg] -> arg =! "T"
         | _ -> Assert.Fail($"Expected argument list")
     | _ ->
-        Assert.Fail($"Failed to parse \"{statement}\"") 
+        Assert.Fail($@"Failed to parse ""{statement}""") 
 
 [<Test>]
 let negTestParameter () =
@@ -30,7 +30,7 @@ let negTestParameter () =
     | Failure(_) ->
         ()
     | _ ->
-        Assert.Fail($"Expected parse of \"{statement}\" to fail.") 
+        Assert.Fail($@"Expected parse of ""{statement}"" to fail.") 
 
 [<Test>]
 let testParameter () =
@@ -46,5 +46,67 @@ let testParameter () =
             param =! expected
             ()
         | _ ->
+            Assert.Fail($"Failed to parse \"{expression}\"") 
+    )
+
+[<Test>]
+let testControl () =
+    let statements = [ ";";"\n" ]
+    statements
+    |> List.iter (fun (expression) ->
+        match (run control expression) with
+        | Success(_) ->
+            ()
+        | _ ->
+            Assert.Fail($"Failed to parse \"{expression}\".") 
+    )
+
+[<Test>]
+let testNoneControl () =
+    let pass = [ "1";"2092"; "asldkjh asdasd"]
+    pass
+    |> List.iter (fun (expression) ->
+        match (run noneControl expression) with
+        | Success(_) ->
+            ()
+        | _ ->
+            Assert.Fail($"Failed to parse \"{expression}\".") 
+    )
+    let fail= [ ";";"\n"]
+    fail
+    |> List.iter (fun (expression) ->
+        match (run noneControl expression) with
+        | Success(_) ->
             Assert.Fail($"Expected parse of \"{expression}\" to fail.") 
+        | _ ->
+            ()
+    )
+
+[<Test>]
+let testCommandArgs () =
+    let pass = [ "-l;";"--list;"; "--arg1 something --arg2 somethingelse;"]
+
+    pass
+    |> List.iter (fun (expression) ->
+        match (run commandArgs expression) with
+        | Success(_) ->
+            ()
+        | _ ->
+            Assert.Fail($"Failed to parse \"{expression}\".") 
+    )
+
+[<Test>]
+let testCommand () =
+    let pass = [
+        (@"find . -iname ""something"";", Command(Path("find"), CommandArgs(@". -iname ""something""")))
+    ]
+
+    pass
+    |> List.iter (fun (expression, expected) ->
+        match (run command expression) with
+        | Success(result,_,_) ->
+            result =! expected
+            ()
+        | _ ->
+            Assert.Fail($"Failed to parse \"{expression}\".") 
     )
