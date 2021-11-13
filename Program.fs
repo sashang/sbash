@@ -9,7 +9,7 @@ module Main =
     let private evalCommand (command : Command) =
         let (Command (path, args)) = command
         let (Path path) = path
-        let (Arguments args) = args
+        let (CommandArgs args) = args
 
         let pathlist = Environment.GetEnvironmentVariable("PATH").Split ([|':'|]) |> Array.toList
         try
@@ -40,6 +40,10 @@ module Main =
         // return true for the moment
         (0, "")
 
+    let private evalDeclare (ds : Declare) =
+        // return true for the moment
+        (0, "")
+
     let read () =
         Console.ReadLine ()
 
@@ -47,9 +51,13 @@ module Main =
         let parseResult = Parser.parse input
         match parseResult with
         | ParserResult.Success (statement, _, _) -> 
-            let (Statement (parameters, command)) = statement
-            let eval = evalParameter parameters
-            evalCommand command
+            match statement with
+            | ParamStatement ps ->
+                evalParameter ps
+            | CommandStatement cs ->
+                evalCommand cs
+            | DeclareStatement ds ->
+                evalDeclare ds
         | ParserResult.Failure (error, _, _) ->
             (0, error)
 
