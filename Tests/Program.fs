@@ -1,6 +1,8 @@
 module Program =
-    open tests
+    open Tests
     [<EntryPoint>]
     let main _ =
-        declare() 
+        testDeclare () 
+        negTestParameter () 
+        testParameter ()
         0
