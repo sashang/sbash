@@ -39,16 +39,17 @@ module Main =
         let (Value value) = value
         ast
 
-    let private paramPropfromArg arg =
+    let private paramPropFromArg arg =
         match arg with
         | SingleArg _ ->
             Nothing
         | ArgVal (arg, value) ->
             match arg with
-            | "T" -> TPParam(
-                match value with 
-                | "csv" -> CSV
-                | _ -> TypeProvider.Nothing
+            | "T" ->
+                TPParam(
+                    match value with 
+                    | "csv" -> CSV
+                    | _ -> TypeProvider.Nothing
                 )
             | _ -> Nothing
 
@@ -62,8 +63,8 @@ module Main =
         | [head] ->
             let (AST (ParameterTable(table), program)) = ast
             let paramProp = paramPropFromArg head
-            let table' = table.Add (name, ASTParameter(argument, Value(""), paramProp))
-            AST(table', program) //return the updated AST
+            let table' = table.Add (Identifier name, ASTParameter(Identifier name, Value(""), paramProp))
+            AST (ParameterTable table', program) //return the updated AST
         | _ -> ast
 
     let read () =
@@ -82,13 +83,13 @@ module Main =
                 evalDeclare ds ast
         | ParserResult.Failure (error, _, _) -> ast
 
-    let rec repl ast () =
+    let rec repl ast =
         let args = read ()
         let ast' = eval args ast
-        repl ast' ()
+        repl ast'
 
     [<EntryPoint>]
     let main argv =
-        let ast = AST (ParameterTable (new Map<Identifier, ASTParameter>), Program([]))
-        repl ()
+        let ast = AST (ParameterTable Map.empty,  Program([]))
+        repl ast |> ignore
         0 // return an integer exit code
