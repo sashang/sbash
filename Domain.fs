@@ -28,3 +28,15 @@ module Domain =
         | DeclareStatement of Declare
 
     type Program = Program of Statement list
+
+    type TypeProvider =
+        | CSV
+        | Nothing
+
+    type ASTParamProp =
+        | TPParam of TypeProvider
+        | Nothing
+
+    type ASTParameter = Identifier * Value  * ASTParamProp
+    type ParameterTable = ParameterTable of Map<Identifier, ASTParameter>
+    type AST = AST of ParameterTable * Program

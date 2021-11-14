@@ -6,7 +6,7 @@ module Main =
     open Domain
     open FParsec.CharParsers
 
-    let private evalCommand (command : Command) =
+    let private evalCommand (command : Command) ast =
         let (Command (path, args)) = command
         let (Path path) = path
         let (CommandArgs args) = args
@@ -29,45 +29,66 @@ module Main =
             proc.Start() |> ignore
 
             proc.WaitForExit()
-            (proc.ExitCode, "")
+            ast
         with
-            | :? Collections.Generic.KeyNotFoundException -> (1, path + ": command not found")
+            | :? Collections.Generic.KeyNotFoundException -> ast
     
-    let private evalParameter (parameter : Parameter) =
+    let private evalParameter (parameter : Parameter) ast =
         let (Parameter (name, value)) = parameter
         let (Name name) = name
         let (Value value) = value
-        // return true for the moment
-        (0, "")
+        ast
 
-    let private evalDeclare (ds : Declare) =
-        // return true for the moment
-        (0, "")
+    let private paramPropfromArg arg =
+        match arg with
+        | SingleArg _ ->
+            Nothing
+        | ArgVal (arg, value) ->
+            match arg with
+            | "T" -> TPParam(
+                match value with 
+                | "csv" -> CSV
+                | _ -> TypeProvider.Nothing
+                )
+            | _ -> Nothing
+
+    // Take a Declare statement and update the AST with the new variable
+    // in the statement
+    let private evalDeclare (ds : Declare) (ast : AST) =
+        let (Declare (Identifier(name), args)) = ds
+
+        match args with
+        | [] -> ast
+        | [head] ->
+            let (AST (ParameterTable(table), program)) = ast
+            let paramProp = paramPropFromArg head
+            let table' = table.Add (name, ASTParameter(argument, Value(""), paramProp))
+            AST(table', program) //return the updated AST
+        | _ -> ast
 
     let read () =
         Console.ReadLine ()
 
-    let eval (input : string) =
+    let eval (input : string) ast =
         let parseResult = Parser.parse input
         match parseResult with
         | ParserResult.Success (statement, _, _) -> 
             match statement with
             | ParamStatement ps ->
-                evalParameter ps
+                evalParameter ps ast
             | CommandStatement cs ->
-                evalCommand cs
+                evalCommand cs ast
             | DeclareStatement ds ->
-                evalDeclare ds
-        | ParserResult.Failure (error, _, _) ->
-            (0, error)
+                evalDeclare ds ast
+        | ParserResult.Failure (error, _, _) -> ast
 
-    let rec repl () =
+    let rec repl ast () =
         let args = read ()
-        let (code, text) = eval args
-        printfn "%s" text
-        repl ()
+        let ast' = eval args ast
+        repl ast' ()
 
     [<EntryPoint>]
     let main argv =
+        let ast = AST (ParameterTable (new Map<Identifier, ASTParameter>), Program([]))
         repl ()
         0 // return an integer exit code
