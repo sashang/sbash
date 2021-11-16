@@ -17,7 +17,16 @@ module Parser =
 
     // command argument parser. commands are terminated with a bash control char, so we parse
     // everything that isn't a control char. Parse stops when it sees a control char.
-    let commandArgs = manyCharsTill noneControl control |>> CommandArgs
+    let commandArgs =
+            manyCharsTill noneControl control
+            |>> CommandArgs
+
+    let identifier =
+        let isIdentifierFirstChar c = isLetter c || c = '_'
+        let isIdentifierChar c = isLetter c || isDigit c || c = '_'
+
+        many1Satisfy2 isIdentifierFirstChar isIdentifierChar
+        .>> spaces |>> Identifier
 
     // parse a command and its args
     let command =
@@ -25,14 +34,13 @@ module Parser =
         |>> fun (a, b) -> Command (Path a, b)
 
 
-    let identifier = regex "[a-zA-Z]*" |>> Identifier
-
     let declareArgs =
-        pchar '-' >>. pstring "T" .>> spaces |>> SingleArg
+        skipChar '-' >>. pstring "T" .>> spaces .>>. manyChars asciiLetter .>> spaces |>> ArgVal
 
     let declare =
         skipString literalDeclare .>> spaces .>>. many declareArgs
-        .>> spaces .>>. identifier |>> fun ((_, args), id) -> Declare (id, args)
+        .>> spaces .>>. identifier
+        |>> fun ((_, args), id) -> Declare (id, args)
 
     let declareStatement = declare .>> control |>> DeclareStatement
     let paramStatement = parameter .>> control |>> ParamStatement

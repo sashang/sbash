@@ -13,15 +13,17 @@ let Setup () =
 
 [<Test>]
 let testDeclare() =
-    let statement = @"declare -T var;"
-    match (run declareStatement statement ) with
-    | Success (DeclareStatement(Declare(Identifier(id), args)), _, _) ->
-        id =! "var"
-        match args with
-        | [SingleArg arg] -> arg =! "T"
-        | _ -> Assert.Fail($"Expected argument list")
-    | _ ->
-        Assert.Fail($@"Failed to parse ""{statement}""") 
+    let pass = [
+        (@"declare -T csv var;", DeclareStatement(Declare(Identifier "var", [ArgVal ("T", "csv")])))
+    ]
+    pass
+    |> List.iter (fun (expression, expected) ->
+        match (run declareStatement expression ) with
+        | Success (result, _, _) ->
+            result =! expected
+        | _ ->
+            Assert.Fail($@"Failed to parse ""{statement}""")
+    ) 
 
 [<Test>]
 let negTestParameter () =
