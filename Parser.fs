@@ -10,16 +10,19 @@ module Parser =
     let control : CharStream<unit> -> Reply<char> = anyOf ";\n"
     let noneControl : CharStream<unit> -> Reply<char> = noneOf ";\n"
 
-    // Parse a parameter e.g. var=1
-    let parameter  =
-        regex "[^=\d][^=]+" .>> skipChar '=' .>>. regex "[^ \n;]+" .>> spaces
-        |>> fun (a, b) -> Parameter (Name a, Value b)
 
     // command argument parser. commands are terminated with a bash control char, so we parse
-    // everything that isn't a control char. Parse stops when it sees a control char.
-    let commandArgs =
-            manyCharsTill noneControl control
-            |>> CommandArgs
+    let dQuoteString =
+        let normalChar = satisfy (fun c -> c <> '\\' && c <> '"')
+        let unescape c =
+            match c with
+            | 'n' -> '\n'
+            | 'r' -> '\r'
+            | 't' -> '\t'
+            | c   -> c
+        let escapedChar = pstring "\\" >>. (anyOf "\\nrt\"" |>> unescape)
+        between (pstring "\"") (pstring "\"")
+                (manyChars (normalChar <|> escapedChar))   // everything that isn't a control char. Parse stops when it sees a control char.
 
     let identifier =
         let isIdentifierFirstChar c = isLetter c || c = '_'
@@ -27,6 +30,16 @@ module Parser =
 
         many1Satisfy2 isIdentifierFirstChar isIdentifierChar
         .>> spaces |>> Identifier
+
+    // Parse a parameter e.g. var=1
+    let parameter  =
+        regex "[^=\d][^=]+" .>> skipChar '=' .>>. dQuoteString .>> spaces
+        |>> fun (a, b) -> Parameter (Name a, Value b)
+
+    let commandArgs =
+            manyCharsTill noneControl control
+            |>> CommandArgs
+
 
     // parse a command and its args
     let command =
