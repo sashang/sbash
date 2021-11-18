@@ -35,7 +35,7 @@ module Parser =
 
 
     let declareArgs =
-        skipChar '-' >>. pstring "T" .>> spaces .>>. manyChars asciiLetter .>> spaces |>> ArgVal
+        skipChar '-' >>. pstring "T" .>> spaces .>>.  identifier .>> spaces |>> ArgVal
 
     let declare =
         skipString literalDeclare .>> spaces .>>. many declareArgs

@@ -2,12 +2,12 @@ namespace SBash
 
 module Domain =
 
+    type Identifier = Identifier of string
     type Path = Path of string
     type Argument = 
     | SingleArg of string
-    | ArgVal of string*string
+    | ArgVal of string*Identifier
 
-    type Identifier = Identifier of string
 
     type Name = Name of string
     type LiteralEqual = char
