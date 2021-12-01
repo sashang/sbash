@@ -15,6 +15,7 @@ let Setup () =
 let testDeclare() =
     let pass = [
         (@"declare -T csv var;", DeclareStatement(Declare(Identifier "var", [ArgVal ("T", Identifier "csv")])))
+        (@"declare Var1;", DeclareStatement(Declare(Identifier "Var1", [])))
     ]
     pass
     |> List.iter (fun (expression, expected) ->
