@@ -48,7 +48,7 @@ module Main =
             | "T" ->
                 TPParam(
                     match value with 
-                    | "csv" -> CSV
+                    | Identifier "csv" -> CSV
                     | _ -> TypeProvider.Nothing
                 )
             | _ -> Nothing
