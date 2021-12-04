@@ -37,7 +37,7 @@ let negTestParameter () =
 
 [<Test>]
 let testParameter () =
-    let multilinetext = "first,last,email\nsashan,govender,sashang@gmail.com"
+    let multilinetext = "first,last,email\nsashan,govender,skg@contesso.com"
     let statements = [
         (@"adsad=""pop"";", Parameter(Name("adsad"), Value("pop")))
         (@"adsad=""=pop"";", Parameter(Name("adsad"), Value("=pop")))
