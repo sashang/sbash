@@ -21,11 +21,13 @@ module Domain =
     type Parameter = Parameter of Name * Value
     type Command = Command of Path * CommandArgs
     type Declare = Declare of Identifier * Argument list
+    type Decltp = Decltp of Identifier * Argument list
 
     type Statement =
         | ParamStatement of Parameter
         | CommandStatement of Command
         | DeclareStatement of Declare
+        | DecltpStatement of Decltp
 
     type Program = Program of Statement list
 

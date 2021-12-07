@@ -7,6 +7,9 @@ module Parser =
     [<Literal>]
     let literalDeclare = "declare"
 
+    [<Literal>]
+    let literalDecltp = "decltp"
+
     let control : CharStream<unit> -> Reply<char> = anyOf ";\n"
     let noneControl : CharStream<unit> -> Reply<char> = noneOf ";\n"
 
@@ -56,6 +59,17 @@ module Parser =
         .>> spaces .>>. identifier
         |>> fun ((_, args), id) -> Declare (id, args)
 
+    let decltpArgs =
+        skipChar '-' >>. pstring "T" .>> spaces .>>.  identifier .>> spaces |>> ArgVal
+
+    // decltp is like declare but it requires one arg hence many1.
+    let decltp =
+        skipString literalDecltp .>> spaces
+        .>>. many1 decltpArgs .>> spaces
+        .>>. identifier
+        |>> fun ((_, args), id) -> Decltp (id, args)
+
+    let decltpStatement = decltp .>> control |>> DecltpStatement
     let declareStatement = declare .>> control |>> DeclareStatement
     let paramStatement = parameter .>> control |>> ParamStatement
     let commandStatement = command |>> CommandStatement

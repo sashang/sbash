@@ -12,6 +12,30 @@ let Setup () =
 
 
 [<Test>]
+let testDecltp() =
+    let pass = [
+        (@"decltp -T csv var;", DecltpStatement(Decltp(Identifier "var", [ArgVal ("T", Identifier "csv")])))
+    ]
+    let fail = [
+        (@"decltp Var1;")
+    ]
+    pass
+    |> List.iter (fun (expression, expected) ->
+        match (run decltpStatement expression) with
+        | Success (result, _, _) ->
+            result =! expected
+        | Failure (error, parserError, state) ->
+            Assert.Fail($@"Failed to parse ""{expression}"". ""{error}""")
+    ) 
+    fail
+    |> List.iter (fun expression ->
+        match (run decltpStatement expression ) with
+        | Failure (error, _, _) -> ()
+        | Success (result, _, _)  ->
+            Assert.Fail($@"Expected parse of ""{expression}"" to fail. Got ""{result}"" instead.") 
+    ) 
+
+[<Test>]
 let testDeclare() =
     let pass = [
         (@"declare -T csv var;", DeclareStatement(Declare(Identifier "var", [ArgVal ("T", Identifier "csv")])))
@@ -29,7 +53,7 @@ let testDeclare() =
 [<Test>]
 let negTestParameter () =
     let statement = @"1vat=111;"
-    match (run parameter statement ) with
+    match (run parameter statement) with
     | Failure(_) ->
         ()
     | _ ->

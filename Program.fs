@@ -67,6 +67,18 @@ module Main =
             AST (ParameterTable table', program) //return the updated AST
         | _ -> ast
 
+    let private evalDecltp (ds : Decltp) (ast : AST) =
+        let (Decltp (Identifier(name), args)) = ds
+
+        match args with
+        | [] -> ast
+        | [head] ->
+            let (AST (ParameterTable(table), program)) = ast
+            let paramProp = paramPropFromArg head
+            let table' = table.Add (Identifier name, ASTParameter(Identifier name, Value(""), paramProp))
+            AST (ParameterTable table', program) //return the updated AST
+        | _ -> ast
+
     let read () =
         Console.ReadLine ()
 
@@ -81,6 +93,8 @@ module Main =
                 evalCommand cs ast
             | DeclareStatement ds ->
                 evalDeclare ds ast
+            | DecltpStatement ds ->
+                evalDecltp ds ast
         | ParserResult.Failure (error, _, _) -> ast
 
     let rec repl ast =
