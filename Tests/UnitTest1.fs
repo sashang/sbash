@@ -14,10 +14,10 @@ let Setup () =
 [<Test>]
 let testDecltp() =
     let pass = [
-        (@"decltp -T csv var;", DecltpStatement(Decltp(Identifier "var", [ArgVal ("T", Identifier "csv")])))
+        ("decltp -T csv var;", DecltpStatement(Decltp(Identifier "var", [ArgVal ("T", Identifier "csv")])))
     ]
     let fail = [
-        (@"decltp Var1;")
+        ("decltp Var1;")
     ]
     pass
     |> List.iter (fun (expression, expected) ->
@@ -38,7 +38,6 @@ let testDecltp() =
 [<Test>]
 let testDeclare() =
     let pass = [
-        (@"declare -T csv var;", DeclareStatement(Declare(Identifier "var", [ArgVal ("T", Identifier "csv")])))
         (@"declare Var1;", DeclareStatement(Declare(Identifier "Var1", [])))
     ]
     pass
@@ -133,6 +132,23 @@ let testCommand () =
     pass
     |> List.iter (fun (expression, expected) ->
         match (run command expression) with
+        | Success(result,_,_) ->
+            result =! expected
+            ()
+        | _ ->
+            Assert.Fail($"Failed to parse \"{expression}\".") 
+    )
+
+[<Test>]
+let testStatement () =
+    let pass = [
+        (@"find . -iname ""something"";", CommandStatement(Command(Path("find"), CommandArgs(@". -iname ""something"""))))
+        ("decltp -T csv var;", DecltpStatement(Decltp(Identifier "var", [ArgVal ("T", Identifier "csv")])))
+    ]
+
+    pass
+    |> List.iter (fun (expression, expected) ->
+        match (run statement expression) with
         | Success(result,_,_) ->
             result =! expected
             ()

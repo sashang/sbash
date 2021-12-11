@@ -85,7 +85,7 @@ module Main =
     let eval (input : string) ast =
         let parseResult = Parser.parse input
         match parseResult with
-        | ParserResult.Success (statement, _, _) -> 
+        | Success (statement, _, _) -> 
             match statement with
             | ParamStatement ps ->
                 evalParameter ps ast
@@ -93,9 +93,11 @@ module Main =
                 evalCommand cs ast
             | DeclareStatement ds ->
                 evalDeclare ds ast
-            | DecltpStatement ds ->
-                evalDecltp ds ast
-        | ParserResult.Failure (error, _, _) -> ast
+            | DecltpStatement dtp ->
+                evalDecltp dtp ast
+        | Failure (error, _, _) ->
+            Console.WriteLine $"Error: {error}"
+            ast
 
     let rec repl ast =
         let args = read ()
