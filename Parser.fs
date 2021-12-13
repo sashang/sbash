@@ -10,8 +10,11 @@ module Parser =
     [<Literal>]
     let literalDecltp = "decltp"
 
-    let control : CharStream<unit> -> Reply<char> = anyOf ";\n"
+    let skipws =
+        skipManySatisfy (fun x -> x = ' ' || x = '\t')
+    let control : CharStream<unit> -> Reply<char> = pchar ';' <|> newline
     let noneControl : CharStream<unit> -> Reply<char> = noneOf ";\n"
+    
 
 
     let dQuoteString =
@@ -31,7 +34,7 @@ module Parser =
         let isIdentifierChar c = isLetter c || isDigit c || c = '_'
 
         many1Satisfy2 isIdentifierFirstChar isIdentifierChar
-        .>> spaces |>> Identifier
+        .>> skipws |>> Identifier
 
     // Parse a parameter e.g. var=1
     let parameter  =
@@ -42,7 +45,7 @@ module Parser =
         // is if in Bash we declared parameters with a keyword, e.g. 'param var=1'
         // in that case we won't need to backtrack because FParsec will be able to
         // determine from the 1st token parsed if this is a parameter or not.
-        regex "[^=\d][^=]+" .>>? skipChar '=' .>>. dQuoteString .>> spaces
+        regex "[^=\d][^=]+" .>>? skipChar '=' .>>. dQuoteString .>> skipws
         |>> fun (a, b) -> Parameter (Name a, Value b)
 
     // command argument parser. commands are terminated with a bash control char, so we parse
@@ -54,25 +57,25 @@ module Parser =
 
     // parse a command and its args
     let command =
-        regex "\w+" .>> spaces .>>. commandArgs .>> spaces
+        regex "\w+" .>> skipws .>>. commandArgs .>> skipws
         |>> fun (a, b) -> Command (Path a, b)
 
 
     let declareArgs =
-        skipChar '-' >>. pstring "T" .>> spaces .>>.  identifier .>> spaces |>> ArgVal
+        skipChar '-' >>. pstring "T" .>> skipws .>>.  identifier .>> skipws |>> ArgVal
 
     let declare =
-        skipString literalDeclare .>> spaces .>>. many declareArgs
-        .>> spaces .>>. identifier
+        skipString literalDeclare .>> skipws .>>. many declareArgs
+        .>> skipws .>>. identifier
         |>> fun ((_, args), id) -> Declare (id, args)
 
     let decltpArgs =
-        skipChar '-' >>. pstring "T" .>> spaces .>>.  identifier .>> spaces |>> ArgVal
+        skipChar '-' >>. pstring "T" .>> skipws .>>.  identifier .>> skipws |>> ArgVal
 
     // decltp is like declare but it requires one arg hence many1.
     let decltp =
-        skipString literalDecltp .>> spaces
-        .>>. many1 decltpArgs .>> spaces
+        skipString literalDecltp .>> skipws
+        .>>. many1 decltpArgs .>> skipws
         .>>. identifier
         |>> fun ((_, args), id) -> Decltp (id, args)
 

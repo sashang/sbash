@@ -143,7 +143,7 @@ let testCommand () =
 let testStatement () =
     let pass = [
         (@"find . -iname ""something"";", CommandStatement(Command(Path("find"), CommandArgs(@". -iname ""something"""))))
-        ("decltp -T csv var;", DecltpStatement(Decltp(Identifier "var", [ArgVal ("T", Identifier "csv")])))
+        ("decltp -T csv var\n", DecltpStatement(Decltp(Identifier "var", [ArgVal ("T", Identifier "csv")])))
     ]
 
     pass
