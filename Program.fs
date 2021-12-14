@@ -33,25 +33,27 @@ module Main =
         with
             | :? Collections.Generic.KeyNotFoundException -> ast
     
-    let private evalParameter (parameter : Parameter) ast =
-        let (Parameter (name, value)) = parameter
-        let (Name name) = name
-        let (Value value) = value
+    // Place statement like var = "some value" into the environment table
+    let private evalParamBinding (parameter : Parameter) (ast : AST) =
+        let (Parameter (id, value)) = parameter
+        let (AST (ParameterTable table, program)) = ast
+        if Map.containsKey id table then
+            
+        let table' = Map.add id value table
         ast
 
-    let private paramPropFromArg arg =
+    let private paramAttrFromArg arg =
         match arg with
         | SingleArg _ ->
-            Nothing
+            None
         | ArgVal (arg, value) ->
             match arg with
             | "T" ->
-                TPParam(
-                    match value with 
-                    | Identifier "csv" -> CSV
-                    | _ -> TypeProvider.Nothing
-                )
-            | _ -> Nothing
+                Some (TPParam(
+                        match value with 
+                        | Identifier "csv" -> CSV
+                     ))
+            | _ -> None
 
     // Take a Declare statement and update the AST with the new variable
     // in the statement
@@ -62,8 +64,8 @@ module Main =
         | [] -> ast
         | [head] ->
             let (AST (ParameterTable(table), program)) = ast
-            let paramProp = paramPropFromArg head
-            let table' = table.Add (Identifier name, ASTParameter(Identifier name, Value(""), paramProp))
+            let attr = paramAttrFromArg head
+            let table' = table.Add (Identifier name, ASTParameter(Identifier name, Value(""), attr))
             AST (ParameterTable table', program) //return the updated AST
         | _ -> ast
 
@@ -74,8 +76,8 @@ module Main =
         | [] -> ast
         | [head] ->
             let (AST (ParameterTable(table), program)) = ast
-            let paramProp = paramPropFromArg head
-            let table' = table.Add (Identifier name, ASTParameter(Identifier name, Value(""), paramProp))
+            let attr = paramAttrFromArg head
+            let table' = table.Add (Identifier name, ASTParameter(Identifier name, Value(""), attr))
             AST (ParameterTable table', program) //return the updated AST
         | _ -> ast
 
@@ -87,8 +89,8 @@ module Main =
         match parseResult with
         | Success (statement, _, _) -> 
             match statement with
-            | ParamStatement ps ->
-                evalParameter ps ast
+            | ParamBindingStatement ps ->
+                evalParamBinding ps ast
             | CommandStatement cs ->
                 evalCommand cs ast
             | DeclareStatement ds ->
