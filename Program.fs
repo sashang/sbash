@@ -1,4 +1,5 @@
 ﻿namespace SBash
+open FSharp.Data
 open System
 open System.Diagnostics
 
@@ -38,9 +39,15 @@ module Main =
         let (Parameter (id, value)) = parameter
         let (AST (ParameterTable table, program)) = ast
         if Map.containsKey id table then
-            
-        let table' = Map.add id value table
-        ast
+            // If a binding exists update it with the new value
+            // and preserve the existing options. Options are specified via declare statements
+            let (_, opts) = Map.find id table
+            let table' = Map.add id (value, opts) table
+            AST (ParameterTable table', program)
+        else
+            // No binding so add this value and id with no parameter options.
+            let table' = Map.add id (value, None) table
+            AST (ParameterTable table', program)
 
     let private paramAttrFromArg arg =
         match arg with
@@ -55,30 +62,31 @@ module Main =
                      ))
             | _ -> None
 
+    let private updateParamTable id ast paramAttr =
+        let (AST (ParameterTable(table), program)) = ast
+        let table' = table.Add (id, ParameterAttributes(Value(""), paramAttr))
+        AST (ParameterTable table', program) //return the updated AST
+
     // Take a Declare statement and update the AST with the new variable
     // in the statement
     let private evalDeclare (ds : Declare) (ast : AST) =
-        let (Declare (Identifier(name), args)) = ds
+        let (Declare (id, args)) = ds
 
         match args with
         | [] -> ast
         | [head] ->
-            let (AST (ParameterTable(table), program)) = ast
             let attr = paramAttrFromArg head
-            let table' = table.Add (Identifier name, ASTParameter(Identifier name, Value(""), attr))
-            AST (ParameterTable table', program) //return the updated AST
+            updateParamTable id ast attr
         | _ -> ast
 
     let private evalDecltp (ds : Decltp) (ast : AST) =
-        let (Decltp (Identifier(name), args)) = ds
+        let (Decltp (id, args)) = ds
 
         match args with
         | [] -> ast
         | [head] ->
-            let (AST (ParameterTable(table), program)) = ast
             let attr = paramAttrFromArg head
-            let table' = table.Add (Identifier name, ASTParameter(Identifier name, Value(""), attr))
-            AST (ParameterTable table', program) //return the updated AST
+            updateParamTable id ast attr
         | _ -> ast
 
     let read () =

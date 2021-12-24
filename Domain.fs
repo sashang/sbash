@@ -37,6 +37,6 @@ module Domain =
     type ParamAttr =
         | TPParam of TypeProvider
 
-    type ASTParameter = Identifier * Value * ParamAttr option
-    type ParameterTable = ParameterTable of Map<Identifier, ASTParameter>
+    type ParameterAttributes = Value * ParamAttr option
+    type ParameterTable = ParameterTable of Map<Identifier, ParameterAttributes>
     type AST = AST of ParameterTable * Program

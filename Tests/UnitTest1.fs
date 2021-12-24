@@ -52,7 +52,7 @@ let testDeclare() =
 [<Test>]
 let negTestParameter () =
     let statement = @"1vat=111;"
-    match (run parameter statement) with
+    match (run parameterBinding statement) with
     | Failure(_) ->
         ()
     | _ ->
@@ -62,14 +62,14 @@ let negTestParameter () =
 let testParameter () =
     let multilinetext = "first,last,email\nsashan,govender,skg@contesso.com"
     let statements = [
-        (@"adsad=""pop"";", Parameter(Name("adsad"), Value("pop")))
-        (@"adsad=""=pop"";", Parameter(Name("adsad"), Value("=pop")))
-        ($"text=\"{multilinetext}\"", Parameter(Name("text"), Value(multilinetext)))
+        (@"adsad=""pop"";", Parameter(Identifier("adsad"), Value("pop")))
+        (@"adsad=""=pop"";", Parameter(Identifier("adsad"), Value("=pop")))
+        ($"text=\"{multilinetext}\"", Parameter(Identifier("text"), Value(multilinetext)))
     ]
 
     statements
     |> List.iter (fun (expression, expected) ->
-        match (run parameter expression) with
+        match (run parameterBinding expression) with
         | Success(param, _, _) ->
             param =! expected
             ()
