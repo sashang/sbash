@@ -71,7 +71,6 @@ module Main =
     // in the statement
     let private evalDeclare (ds : Declare) (ast : AST) =
         let (Declare (id, args)) = ds
-
         match args with
         | [] -> ast
         | [head] ->

@@ -14,14 +14,14 @@ let Setup () =
 [<Test>]
 let testDecltp() =
     let pass = [
-        ("decltp -T csv var;", DecltpStatement(Decltp(Identifier "var", [ArgVal ("T", Identifier "csv")])))
+        ("svar -t csv var;", SVarStatement(SVar(Identifier "var", [WithArg ("t", Identifier "csv")])))
     ]
     let fail = [
-        ("decltp Var1;")
+        ("svar Var1;")
     ]
     pass
     |> List.iter (fun (expression, expected) ->
-        match (run decltpStatement expression) with
+        match (run svarStatement expression) with
         | Success (result, _, _) ->
             result =! expected
         | Failure (error, parserError, state) ->
@@ -29,7 +29,7 @@ let testDecltp() =
     ) 
     fail
     |> List.iter (fun expression ->
-        match (run decltpStatement expression ) with
+        match (run svarStatement expression ) with
         | Failure (error, _, _) -> ()
         | Success (result, _, _)  ->
             Assert.Fail($@"Expected parse of ""{expression}"" to fail. Got ""{result}"" instead.") 
@@ -57,6 +57,18 @@ let negTestParameter () =
         ()
     | _ ->
         Assert.Fail($@"Expected parse of ""{statement}"" to fail.") 
+
+[<Test>]
+let testShortOptions () =
+    let expr = "-st"
+    let expected = seq {NoArg (string 's'); NoArg (string 't')}
+    match (run (shortOptions "st") expr) with
+    | Success (result, _, _) ->
+        // sequences don't do structural equality, so saying s1 = s2 is going to be false.
+        let test = (result, expected) ||> Seq.compareWith (fun x y -> compare x y)
+        test =! 0
+    | _ ->
+        Assert.Fail($@"Failed to parse ""{expr}""")
 
 [<Test>]
 let testParameter () =
@@ -143,7 +155,7 @@ let testCommand () =
 let testStatement () =
     let pass = [
         (@"find . -iname ""something"";", CommandStatement(Command(Path("find"), CommandArgs(@". -iname ""something"""))))
-        ("decltp -T csv var\n", DecltpStatement(Decltp(Identifier "var", [ArgVal ("T", Identifier "csv")])))
+        ("svar -t csv var\n", SVarStatement(SVar(Identifier "var", [WithArg ("t", Identifier "csv")])))
     ]
 
     pass

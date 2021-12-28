@@ -8,7 +8,7 @@ module Parser =
     let literalDeclare = "declare"
 
     [<Literal>]
-    let literalDecltp = "decltp"
+    let literalSVar = "svar"
 
     let skipws =
         skipManySatisfy (fun x -> x = ' ' || x = '\t')
@@ -62,30 +62,34 @@ module Parser =
 
 
     let declareArgs =
-        skipChar '-' >>. pstring "T" .>> skipws .>>.  identifier .>> skipws |>> ArgVal
+        skipChar '-' >>. pstring "T" .>> skipws .>>.  identifier .>> skipws |>> WithArg
 
     let declare =
         skipString literalDeclare .>> skipws .>>. many declareArgs
         .>> skipws .>>. identifier
         |>> fun ((_, args), id) -> Declare (id, args)
 
-    let decltpArgs =
-        skipChar '-' >>. pstring "T" .>> skipws .>>.  identifier .>> skipws |>> ArgVal
+    let shortOptions (options : string) =
+        skipChar '-' >>. manyCharsTillApply (anyOf options) eof (fun str _ -> Seq.map (fun c -> NoArg (string c)) str)
 
-    // decltp is like declare but it requires one arg hence many1.
-    let decltp =
-        skipString literalDecltp .>> skipws
-        .>>. many1 decltpArgs .>> skipws
+    let svarArgs =
+        skipChar '-' >>. pstring "t" <|> pstring "s" .>> skipws .>>.  identifier .>> skipws |>> WithArg
+
+    // svar stands for structured variable. It is a varible with structued data, for example,
+    // csv, json, etc... any string like data with structure.
+    let svar =
+        skipString literalSVar .>> skipws
+        .>>. many1 svarArgs .>> skipws
         .>>. identifier
-        |>> fun ((_, args), id) -> Decltp (id, args)
+        |>> fun ((_, args), id) -> SVar (id, args)
 
-    let decltpStatement = decltp .>> control |>> DecltpStatement
+    let svarStatement = svar .>> control |>> SVarStatement
     let declareStatement = declare .>> control |>> DeclareStatement
     let paramBindingStatement = parameterBinding .>> control |>> ParamBindingStatement
     let commandStatement = command |>> CommandStatement
     //let statement = decltpStatement <|> declareStatement <|> paramStatement <|> commandStatement
     let statement =
-        decltpStatement
+        svarStatement
         <|> declareStatement
         <|> paramBindingStatement
         <|> commandStatement

@@ -4,9 +4,12 @@ module Domain =
 
     type Identifier = Identifier of string
     type Path = Path of string
-    type Argument = 
-    | SingleArg of string
-    | ArgVal of string*Identifier
+
+    // Option for a command. eg: "svar -s" or "<command> --opt1"
+    // WithArg represents things like "<command> -s arg1 -t arg2" or "<command> --opt1 arg1"
+    type CommandOption = 
+        | NoArg of string
+        | WithArg of string*Identifier
 
 
     type LiteralEqual = char
@@ -19,14 +22,14 @@ module Domain =
     type CommandArgs = CommandArgs of string
     type Parameter = Parameter of Identifier * Value
     type Command = Command of Path * CommandArgs
-    type Declare = Declare of Identifier * Argument list
-    type Decltp = Decltp of Identifier * Argument list
+    type Declare = Declare of Identifier * CommandOption list
+    type SVar = SVar of Identifier * CommandOption list
 
     type Statement =
         | ParamBindingStatement of Parameter
         | CommandStatement of Command
         | DeclareStatement of Declare
-        | DecltpStatement of Decltp
+        | SVarStatement of SVar
 
     type Program = Program of Statement list
 
