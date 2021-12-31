@@ -5,3 +5,6 @@ bin/
 obj/
 .fake
 .ionide
+MSFT.csv:Zone.Identifier
+multiple-lines.sh
+MSFT.csv
