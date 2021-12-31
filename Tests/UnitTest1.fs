@@ -60,15 +60,40 @@ let negTestParameter () =
 
 [<Test>]
 let testShortOptions () =
-    let expr = "-st"
+    let expressions = [
+        "-st\n"
+        "-st;"
+        "-st "
+        "-st\t"
+    ]
+
     let expected = seq {NoArg (string 's'); NoArg (string 't')}
-    match (run (shortOptions "st") expr) with
-    | Success (result, _, _) ->
-        // sequences don't do structural equality, so saying s1 = s2 is going to be false.
-        let test = (result, expected) ||> Seq.compareWith (fun x y -> compare x y)
-        test =! 0
-    | _ ->
-        Assert.Fail($@"Failed to parse ""{expr}""")
+    expressions
+    |> List.iter (fun expression -> 
+        match (run (shortOptions "st") expression) with
+        | Success (result, _, _) ->
+            // sequences don't do structural equality, so saying s1 = s2 is going to be false.
+            let test = (result, expected) ||> Seq.compareWith (fun x y -> compare x y)
+            if test <> 0 then
+                Assert.Fail($@"Failed to parse ""{expression}""")
+        | _ ->
+            Assert.Fail($@"Failed to parse ""{expression}""")
+    )
+
+[<Test>]
+let negShortOptions () =
+    let testCases = [
+        ("-st ", "x")
+        ("", "x")
+    ]
+    testCases
+    |> List.iter (fun (expr, badOptions) ->
+        match (run (shortOptions badOptions) expr) with
+        | Failure(_) ->
+            ()
+        | _ ->
+        Assert.Fail($@"Expected parse of ""{expr}"" to fail.") 
+    )
 
 [<Test>]
 let testParameter () =

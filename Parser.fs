@@ -3,6 +3,7 @@ namespace SBash
 module Parser =
     open Domain
     open FParsec
+    open FsUnit
 
     [<Literal>]
     let literalDeclare = "declare"
@@ -12,10 +13,11 @@ module Parser =
 
     let skipws =
         skipManySatisfy (fun x -> x = ' ' || x = '\t')
+
+
     let control : CharStream<unit> -> Reply<char> = pchar ';' <|> newline
     let noneControl : CharStream<unit> -> Reply<char> = noneOf ";\n"
     
-
 
     let dQuoteString =
         let normalChar = satisfy (fun c -> c <> '\\' && c <> '"')
@@ -69,8 +71,16 @@ module Parser =
         .>> skipws .>>. identifier
         |>> fun ((_, args), id) -> Declare (id, args)
 
+    /// <summary>
+    /// Short options are things like: &lt;command&gt; -st.
+    /// They don't have arguments therefore map to the NoArg constructor.
+    /// </summary>
+    /// <param name="options"> options: a string of characters representing the valid short options.</param>
     let shortOptions (options : string) =
-        skipChar '-' >>. manyCharsTillApply (anyOf options) eof (fun str _ -> Seq.map (fun c -> NoArg (string c)) str)
+        skipChar '-' >>. manyCharsTillApply
+            (anyOf options) 
+            (satisfy (fun x -> x = ' ' || x = '\n' || x = ';' || x = '\t'))
+            (fun str _ -> str |> Seq.map (fun c -> NoArg (string c)))
 
     let svarArgs =
         skipChar '-' >>. pstring "t" <|> pstring "s" .>> skipws .>>.  identifier .>> skipws |>> WithArg
