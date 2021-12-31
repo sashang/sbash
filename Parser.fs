@@ -89,9 +89,9 @@ module Parser =
     // csv, json, etc... any string like data with structure.
     let svar =
         skipString literalSVar .>> skipws
-        .>>. many1 svarArgs .>> skipws
+        .>>. shortOptions "st" .>> skipws
         .>>. identifier
-        |>> fun ((_, args), id) -> SVar (id, args)
+        |>> fun ((_, args), id) -> SVar (id, List.ofSeq args)
 
     let svarStatement = svar .>> control |>> SVarStatement
     let declareStatement = declare .>> control |>> DeclareStatement

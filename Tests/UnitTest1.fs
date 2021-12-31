@@ -14,7 +14,7 @@ let Setup () =
 [<Test>]
 let testDecltp() =
     let pass = [
-        ("svar -t csv var;", SVarStatement(SVar(Identifier "var", [WithArg ("t", Identifier "csv")])))
+        ("svar -t var;", SVarStatement(SVar(Identifier "var", [NoArg "t"])))
     ]
     let fail = [
         ("svar Var1;")
@@ -180,7 +180,7 @@ let testCommand () =
 let testStatement () =
     let pass = [
         (@"find . -iname ""something"";", CommandStatement(Command(Path("find"), CommandArgs(@". -iname ""something"""))))
-        ("svar -t csv var\n", SVarStatement(SVar(Identifier "var", [WithArg ("t", Identifier "csv")])))
+        ("svar -t var\n", SVarStatement(SVar(Identifier "var", [NoArg "t"])))
     ]
 
     pass

@@ -51,14 +51,15 @@ module Main =
 
     let private paramAttrFromArg arg =
         match arg with
-        | SingleArg _ ->
+        | NoArg _ ->
             None
-        | ArgVal (arg, value) ->
+        | WithArg (arg, value) ->
             match arg with
             | "T" ->
                 Some (TPParam(
                         match value with 
                         | Identifier "csv" -> CSV
+                        | _ -> failwith "unsupported structured data type."
                      ))
             | _ -> None
 
@@ -78,8 +79,8 @@ module Main =
             updateParamTable id ast attr
         | _ -> ast
 
-    let private evalDecltp (ds : Decltp) (ast : AST) =
-        let (Decltp (id, args)) = ds
+    let private evalSVar (ds : SVar) (ast : AST) =
+        let (SVar (id, args)) = ds
 
         match args with
         | [] -> ast
@@ -102,8 +103,8 @@ module Main =
                 evalCommand cs ast
             | DeclareStatement ds ->
                 evalDeclare ds ast
-            | DecltpStatement dtp ->
-                evalDecltp dtp ast
+            | SVarStatement svar ->
+                evalSVar svar ast
         | Failure (error, _, _) ->
             Console.WriteLine $"Error: {error}"
             ast
