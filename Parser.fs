@@ -3,7 +3,6 @@ namespace SBash
 module Parser =
     open Domain
     open FParsec
-    open FsUnit
 
     [<Literal>]
     let literalDeclare = "declare"
@@ -77,13 +76,17 @@ module Parser =
     /// </summary>
     /// <param name="options"> options: a string of characters representing the valid short options.</param>
     let shortOptions (options : string) =
-        skipChar '-' >>. manyCharsTillApply
+        skipChar '-'
+        >>. manyCharsTillApply
             (anyOf options) 
             (satisfy (fun x -> x = ' ' || x = '\n' || x = ';' || x = '\t'))
             (fun str _ -> str |> Seq.map (fun c -> NoArg (string c)))
 
-    let svarArgs =
-        skipChar '-' >>. pstring "t" <|> pstring "s" .>> skipws .>>.  identifier .>> skipws |>> WithArg
+    let shortOptionsWithArg (options : string) =
+        skipChar '-' 
+        >>. anyOf options .>> skipws
+        .>>. identifier
+        |>> (fun (optionLetter, optionArg) -> WithArg(string optionLetter, optionArg))
 
     // svar stands for structured variable. It is a varible with structued data, for example,
     // csv, json, etc... any string like data with structure.

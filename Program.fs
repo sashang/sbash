@@ -1,4 +1,4 @@
-﻿namespace SBash
+namespace SBash
 open FSharp.Data
 open System
 open System.Diagnostics
@@ -33,6 +33,9 @@ module Main =
             ast
         with
             | :? Collections.Generic.KeyNotFoundException -> ast
+
+    let private printParameterTable table =
+        Map.iter (fun key x -> printfn "key = %A, value = %A" key x) table
     
     // Place statement like var = "some value" into the environment table
     let private evalParamBinding (parameter : Parameter) (ast : AST) =
@@ -40,7 +43,7 @@ module Main =
         let (AST (ParameterTable table, program)) = ast
         if Map.containsKey id table then
             // If a binding exists update it with the new value
-            // and preserve the existing options. Options are specified via declare statements
+            // and preserve the existing options. Options of the parameter are specified via declare or svar statements
             let (_, opts) = Map.find id table
             let table' = Map.add id (value, opts) table
             AST (ParameterTable table', program)
@@ -51,10 +54,15 @@ module Main =
 
     let private paramAttrFromArg arg =
         match arg with
-        | NoArg _ ->
-            None
-        | WithArg (arg, value) ->
-            match arg with
+        | NoArg optionLetter ->
+            match optionLetter with
+            | "t" ->
+                // for now just maps this to the csv type provider
+                Some (TPParam CSV)
+            | _ ->
+                None
+        | WithArg (optionLetter, value) ->
+            match optionLetter with
             | "T" ->
                 Some (TPParam(
                         match value with 
@@ -66,6 +74,7 @@ module Main =
     let private updateParamTable id ast paramAttr =
         let (AST (ParameterTable(table), program)) = ast
         let table' = table.Add (id, ParameterAttributes(Value(""), paramAttr))
+        printParameterTable table'
         AST (ParameterTable table', program) //return the updated AST
 
     // Take a Declare statement and update the AST with the new variable

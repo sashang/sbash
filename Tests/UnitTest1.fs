@@ -11,6 +11,8 @@ let Setup () =
     ()
 
 
+
+
 [<Test>]
 let testDecltp() =
     let pass = [
@@ -59,6 +61,25 @@ let negTestParameter () =
         Assert.Fail($@"Expected parse of ""{statement}"" to fail.") 
 
 [<Test>]
+let testShortOptionsWithArg () =
+    let expressions = [
+        "-t csv\n"
+        "-t csv;"
+        "-t\tcsv;"
+        "-t   csv;"
+    ]
+
+    let expected = WithArg (string 't', Identifier "csv")
+    expressions
+    |> List.iter (fun expression -> 
+        match (run (shortOptionsWithArg "t") expression) with
+        | Success (result, _, _) ->
+            result =! expected
+        | _ ->
+            Assert.Fail($@"Failed to parse ""{expression}""")
+    )
+
+[<Test>]
 let testShortOptions () =
     let expressions = [
         "-st\n"
@@ -89,10 +110,9 @@ let negShortOptions () =
     testCases
     |> List.iter (fun (expr, badOptions) ->
         match (run (shortOptions badOptions) expr) with
-        | Failure(_) ->
-            ()
+        | Failure(_) -> ()
         | _ ->
-        Assert.Fail($@"Expected parse of ""{expr}"" to fail.") 
+            Assert.Fail($@"Expected parse of ""{expr}"" to fail.") 
     )
 
 [<Test>]
@@ -109,7 +129,6 @@ let testParameter () =
         match (run parameterBinding expression) with
         | Success(param, _, _) ->
             param =! expected
-            ()
         | _ ->
             Assert.Fail($"Failed to parse \"{expression}\"") 
     )
