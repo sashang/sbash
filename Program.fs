@@ -1,4 +1,4 @@
-namespace SBash
+﻿namespace SBash
 open FSharp.Data
 open System
 open System.Diagnostics
@@ -6,6 +6,7 @@ open System.Diagnostics
 module Main =
     open Domain
     open FParsec.CharParsers
+    open System
 
     let private evalCommand (command : Command) ast =
         let (Command (path, args)) = command
@@ -36,7 +37,7 @@ module Main =
 
     let private printParameterTable table =
         Map.iter (fun key x -> printfn "key = %A, value = %A" key x) table
-    
+
     // Place statement like var = "some value" into the environment table
     let private evalParamBinding (parameter : Parameter) (ast : AST) =
         let (Parameter (id, value)) = parameter
@@ -65,14 +66,14 @@ module Main =
             match optionLetter with
             | "T" ->
                 Some (TPParam(
-                        match value with 
+                        match value with
                         | Identifier "csv" -> CSV
                         | _ -> failwith "unsupported structured data type."
                      ))
             | _ -> None
 
     let private updateParamTable id ast paramAttr =
-        let (AST (ParameterTable(table), program)) = ast
+        let (Environment (ParameterTable(table), program)) = ast
         let table' = table.Add (id, ParameterAttributes(Value(""), paramAttr))
         printParameterTable table'
         AST (ParameterTable table', program) //return the updated AST
@@ -104,7 +105,7 @@ module Main =
     let eval (input : string) ast =
         let parseResult = Parser.parse input
         match parseResult with
-        | Success (statement, _, _) -> 
+        | Success (statement, _, _) ->
             match statement with
             | ParamBindingStatement ps ->
                 evalParamBinding ps ast

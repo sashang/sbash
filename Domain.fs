@@ -7,7 +7,7 @@ module Domain =
 
     // Option for a command. eg: "svar -s" or "<command> --opt1"
     // WithArg represents things like "<command> -s arg1 -t arg2" or "<command> --opt1 arg1"
-    type CommandOption = 
+    type CommandOption =
         | NoArg of string
         | WithArg of string*Identifier
 
@@ -30,8 +30,13 @@ module Domain =
         | CommandStatement of Command
         | DeclareStatement of Declare
         | SVarStatement of SVar
-
-    type Program = Program of Statement list
+        | IfStatement of IfStatement
+    and
+        StatementBlock = StatementBlock of Statement list
+    and
+        IfStatement =
+        | If of StatementBlock
+        | IfElse of StatementBlock * StatementBlock
 
     type TypeProvider =
         | CSV
@@ -41,5 +46,5 @@ module Domain =
         | TPParam of TypeProvider
 
     type ParameterAttributes = Value * ParamAttr option
-    type ParameterTable = ParameterTable of Map<Identifier, ParameterAttributes>
-    type AST = AST of ParameterTable * Program
+    type Environment = Environment of Map<Identifier, ParameterAttributes>
+    type Program = Program of Environment * StatementBlock
