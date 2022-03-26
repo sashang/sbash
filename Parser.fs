@@ -8,7 +8,7 @@ module Parser =
     let literalDeclare = "declare"
 
     [<Literal>]
-    let literalSVar = "svar"
+    let keywordSVar = "svar"
 
     let skipws =
         skipManySatisfy (fun x -> x = ' ' || x = '\t')
@@ -16,7 +16,7 @@ module Parser =
 
     let control : CharStream<unit> -> Reply<char> = pchar ';' <|> newline
     let noneControl : CharStream<unit> -> Reply<char> = noneOf ";\n"
-    
+
 
     let dQuoteString =
         let normalChar = satisfy (fun c -> c <> '\\' && c <> '"')
@@ -28,7 +28,7 @@ module Parser =
             | c   -> c
         let escapedChar = pstring "\\" >>. (anyOf "\\nrt\"" |>> unescape)
         between (pstring "\"") (pstring "\"")
-                (manyChars (normalChar <|> escapedChar))   
+                (manyChars (normalChar <|> escapedChar))
 
     let identifier =
         let isIdentifierFirstChar c = isLetter c || c = '_'
@@ -78,12 +78,12 @@ module Parser =
     let shortOptions (options : string) =
         skipChar '-'
         >>. manyCharsTillApply
-            (anyOf options) 
+            (anyOf options)
             (satisfy (fun x -> x = ' ' || x = '\n' || x = ';' || x = '\t'))
             (fun str _ -> str |> Seq.map (fun c -> NoArg (string c)))
 
     let shortOptionsWithArg (options : string) =
-        skipChar '-' 
+        skipChar '-'
         >>. anyOf options .>> skipws
         .>>. identifier
         |>> (fun (optionLetter, optionArg) -> WithArg(string optionLetter, optionArg))
@@ -91,7 +91,7 @@ module Parser =
     // svar stands for structured variable. It is a varible with structued data, for example,
     // csv, json, etc... any string like data with structure.
     let svar =
-        skipString literalSVar .>> skipws
+        skipString keywordSVar .>> skipws
         .>>. shortOptions "st" .>> skipws
         .>>. identifier
         |>> fun ((_, args), id) -> SVar (id, List.ofSeq args)

@@ -28,14 +28,14 @@ let testDecltp() =
             result =! expected
         | Failure (error, parserError, state) ->
             Assert.Fail($@"Failed to parse ""{expression}"". ""{error}""")
-    ) 
+    )
     fail
     |> List.iter (fun expression ->
         match (run svarStatement expression ) with
         | Failure (error, _, _) -> ()
         | Success (result, _, _)  ->
-            Assert.Fail($@"Expected parse of ""{expression}"" to fail. Got ""{result}"" instead.") 
-    ) 
+            Assert.Fail($@"Expected parse of ""{expression}"" to fail. Got ""{result}"" instead.")
+    )
 
 [<Test>]
 let testDeclare() =
@@ -49,7 +49,7 @@ let testDeclare() =
             result =! expected
         | _ ->
             Assert.Fail($@"Failed to parse ""{statement}""")
-    ) 
+    )
 
 [<Test>]
 let negTestParameter () =
@@ -58,7 +58,7 @@ let negTestParameter () =
     | Failure(_) ->
         ()
     | _ ->
-        Assert.Fail($@"Expected parse of ""{statement}"" to fail.") 
+        Assert.Fail($@"Expected parse of ""{statement}"" to fail.")
 
 [<Test>]
 let testShortOptionsWithArg () =
@@ -71,7 +71,7 @@ let testShortOptionsWithArg () =
 
     let expected = WithArg (string 't', Identifier "csv")
     expressions
-    |> List.iter (fun expression -> 
+    |> List.iter (fun expression ->
         match (run (shortOptionsWithArg "t") expression) with
         | Success (result, _, _) ->
             result =! expected
@@ -90,7 +90,7 @@ let testShortOptions () =
 
     let expected = seq {NoArg (string 's'); NoArg (string 't')}
     expressions
-    |> List.iter (fun expression -> 
+    |> List.iter (fun expression ->
         match (run (shortOptions "st") expression) with
         | Success (result, _, _) ->
             // sequences don't do structural equality, so saying s1 = s2 is going to be false.
@@ -112,7 +112,7 @@ let negShortOptions () =
         match (run (shortOptions badOptions) expr) with
         | Failure(_) -> ()
         | _ ->
-            Assert.Fail($@"Expected parse of ""{expr}"" to fail.") 
+            Assert.Fail($@"Expected parse of ""{expr}"" to fail.")
     )
 
 [<Test>]
@@ -130,7 +130,7 @@ let testParameter () =
         | Success(param, _, _) ->
             param =! expected
         | _ ->
-            Assert.Fail($"Failed to parse \"{expression}\"") 
+            Assert.Fail($"Failed to parse \"{expression}\"")
     )
 
 [<Test>]
@@ -142,7 +142,7 @@ let testControl () =
         | Success(_) ->
             ()
         | _ ->
-            Assert.Fail($"Failed to parse \"{expression}\".") 
+            Assert.Fail($"Failed to parse \"{expression}\".")
     )
 
 [<Test>]
@@ -154,14 +154,14 @@ let testNoneControl () =
         | Success(_) ->
             ()
         | _ ->
-            Assert.Fail($"Failed to parse \"{expression}\".") 
+            Assert.Fail($"Failed to parse \"{expression}\".")
     )
     let fail= [ ";";"\n"]
     fail
     |> List.iter (fun (expression) ->
         match (run noneControl expression) with
         | Success(_) ->
-            Assert.Fail($"Expected parse of \"{expression}\" to fail.") 
+            Assert.Fail($"Expected parse of \"{expression}\" to fail.")
         | _ ->
             ()
     )
@@ -176,7 +176,7 @@ let testCommandArgs () =
         | Success(_) ->
             ()
         | _ ->
-            Assert.Fail($"Failed to parse \"{expression}\".") 
+            Assert.Fail($"Failed to parse \"{expression}\".")
     )
 
 [<Test>]
@@ -192,7 +192,7 @@ let testCommand () =
             result =! expected
             ()
         | _ ->
-            Assert.Fail($"Failed to parse \"{expression}\".") 
+            Assert.Fail($"Failed to parse \"{expression}\".")
     )
 
 [<Test>]
@@ -209,5 +209,5 @@ let testStatement () =
             result =! expected
             ()
         | _ ->
-            Assert.Fail($"Failed to parse \"{expression}\".") 
+            Assert.Fail($"Failed to parse \"{expression}\".")
     )

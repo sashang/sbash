@@ -39,19 +39,19 @@ module Main =
         Map.iter (fun key x -> printfn "key = %A, value = %A" key x) table
 
     // Place statement like var = "some value" into the environment table
-    let private evalParamBinding (parameter : Parameter) (ast : AST) =
+    let private evalParamBinding (parameter : Parameter) (program : Program) =
         let (Parameter (id, value)) = parameter
-        let (AST (ParameterTable table, program)) = ast
-        if Map.containsKey id table then
+        let (Program (ProgEnv env, statementBlock)) = program
+        if Map.containsKey id env then
             // If a binding exists update it with the new value
             // and preserve the existing options. Options of the parameter are specified via declare or svar statements
-            let (_, opts) = Map.find id table
-            let table' = Map.add id (value, opts) table
-            AST (ParameterTable table', program)
+            let (_, opts) = Map.find id env
+            let table' = Map.add id (value, opts) env
+            Program (ProgEnv table', statementBlock)
         else
             // No binding so add this value and id with no parameter options.
-            let table' = Map.add id (value, None) table
-            AST (ParameterTable table', program)
+            let table' = Map.add id (value, None) env
+            Program (ProgEnv table', statementBlock)
 
     let private paramAttrFromArg arg =
         match arg with
@@ -72,60 +72,60 @@ module Main =
                      ))
             | _ -> None
 
-    let private updateParamTable id ast paramAttr =
-        let (Environment (ParameterTable(table), program)) = ast
+    let private updateParamTable id program paramAttr =
+        let (Program (ProgEnv(table), statementBlock)) = program
         let table' = table.Add (id, ParameterAttributes(Value(""), paramAttr))
         printParameterTable table'
-        AST (ParameterTable table', program) //return the updated AST
+        Program (ProgEnv table', statementBlock) //return the updated table
 
-    // Take a Declare statement and update the AST with the new variable
+    // Take a Declare statement and update the environment with the new variable
     // in the statement
-    let private evalDeclare (ds : Declare) (ast : AST) =
+    let private evalDeclare (ds : Declare) (program : Program) =
         let (Declare (id, args)) = ds
         match args with
-        | [] -> ast
+        | [] -> program
         | [head] ->
             let attr = paramAttrFromArg head
-            updateParamTable id ast attr
-        | _ -> ast
+            updateParamTable id program attr
+        | _ -> program
 
-    let private evalSVar (ds : SVar) (ast : AST) =
+    let private evalSVar (ds : SVar) (program : Program) =
         let (SVar (id, args)) = ds
 
         match args with
-        | [] -> ast
+        | [] -> program
         | [head] ->
             let attr = paramAttrFromArg head
-            updateParamTable id ast attr
-        | _ -> ast
+            updateParamTable id program attr
+        | _ -> program
 
     let read () =
         Console.ReadLine ()
 
-    let eval (input : string) ast =
+    let eval (input : string) program =
         let parseResult = Parser.parse input
         match parseResult with
         | Success (statement, _, _) ->
             match statement with
             | ParamBindingStatement ps ->
-                evalParamBinding ps ast
+                evalParamBinding ps program
             | CommandStatement cs ->
-                evalCommand cs ast
+                evalCommand cs program
             | DeclareStatement ds ->
-                evalDeclare ds ast
+                evalDeclare ds program
             | SVarStatement svar ->
-                evalSVar svar ast
+                evalSVar svar program
         | Failure (error, _, _) ->
             Console.WriteLine $"Error: {error}"
-            ast
+            program
 
-    let rec repl ast =
+    let rec repl program =
         let args = read ()
-        let ast' = eval args ast
-        repl ast'
+        let program' = eval args program
+        repl program'
 
     [<EntryPoint>]
     let main argv =
-        let ast = AST (ParameterTable Map.empty,  Program([]))
-        repl ast |> ignore
+        let program = Program.Empty
+        repl program |> ignore
         0 // return an integer exit code

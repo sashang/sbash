@@ -46,5 +46,9 @@ module Domain =
         | TPParam of TypeProvider
 
     type ParameterAttributes = Value * ParamAttr option
-    type Environment = Environment of Map<Identifier, ParameterAttributes>
-    type Program = Program of Environment * StatementBlock
+    type ProgEnv = ProgEnv of Map<Identifier, ParameterAttributes>
+
+    type Program =
+        Program of ProgEnv* StatementBlock
+    with
+        static member Empty = Program(ProgEnv(Map.empty), StatementBlock([]))
